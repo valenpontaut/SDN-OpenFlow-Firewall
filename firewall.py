@@ -68,15 +68,6 @@ class Firewall(EventMixin):
             if dst_ip != rule["dst_ip"]:
                 return False
 
-        if "block_pair" in rule:
-            a, b = rule["block_pair"]
-            if not ip_packet:
-                return False
-
-            if (src_ip == a and dst_ip == b) or (src_ip == b and dst_ip == a):
-                return True
-            return False
-
         return True
 
     def _handle_PacketIn(self, event):
