@@ -27,6 +27,12 @@ class Firewall(EventMixin):
 
     def _handle_ConnectionUp(self, event):
         log.info("Switch conectado (dpid=%s)", event.connection.dpid)
+        dpid = event.connection.dpid
+
+        if dpid == self.firewall_dpid:
+            log.info(">>> REGISTRANDO FIREWALL EN SWITCH %s", dpid)
+            self.firewall_conn = event.connection
+            event.connection.addListenerByName("PacketIn", self._handle_PacketIn, priority=99)
 
     def packet_matches_rule(self, rule, packet):
         #Devuelve True si el paquete coincide con la regla al llegar al final
@@ -72,15 +78,12 @@ class Firewall(EventMixin):
         return True
 
     def _handle_PacketIn(self, event):
-        dpid = event.connection.dpid
-        if dpid != self.firewall_dpid:
-            return
         packet = event.parsed
         log.info("Llego PacketIn en el switch %s", event.connection.dpid)
 
         for rule in self.rules:
             if self.packet_matches_rule(rule, packet):
-                log.info("Bloqueado: regla=%s", rule)
+                log.info("Bloqueado: regla=%s, for %s -> %s", rule, packet.src, packet.dst)
                 event.halt = True
                 return
 
