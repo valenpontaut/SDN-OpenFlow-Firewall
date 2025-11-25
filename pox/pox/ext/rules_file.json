@@ -1,0 +1,22 @@
+[
+  {
+    "protocol": "TCP",
+    "dst_port": 80
+  },
+  {
+    "src_ip": "10.0.0.1",
+    "dst_port": 5001,
+    "protocol": "UDP"
+  },
+  {
+    "src_ip": "10.0.0.2",
+    "dst_ip": "10.0.0.3",
+    "action": "drop"
+  },
+  {
+    "src_ip": "10.0.0.3",
+    "dst_ip": "10.0.0.2",
+    "action": "drop"
+  }
+]
+
