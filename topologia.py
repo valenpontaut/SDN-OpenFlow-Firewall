@@ -24,7 +24,7 @@ class ChainTopo(Topo):
 
         switches = []
         for i in range(1, n_switches + 1):
-            s = self.addSwitch(f"s{i}")
+            s = self.addSwitch(f"s{i}", dpid=f"{i:016x}")
             switches.append(s)
 
         self.addLink(h1, switches[0])

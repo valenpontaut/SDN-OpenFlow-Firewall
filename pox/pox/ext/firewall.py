@@ -7,10 +7,11 @@ import json
 log = core.getLogger()
 
 class Firewall(EventMixin):
-    def __init__(self, rules_file):
+    def __init__(self, rules_file, dpid):
         self.listenTo(core.openflow)
         self.rules = []
         self.mac_table = {}
+        self.firewall_dpid = int(dpid)
 
         module_dir = os.path.dirname(__file__)
         rules_path = os.path.join(module_dir, rules_file)
@@ -68,43 +69,20 @@ class Firewall(EventMixin):
             if dst_ip != rule["dst_ip"]:
                 return False
 
-        if "block_pair" in rule:
-            a, b = rule["block_pair"]
-            if not ip_packet:
-                return False
-
-            if (src_ip == a and dst_ip == b) or (src_ip == b and dst_ip == a):
-                return True
-            return False
-
         return True
 
     def _handle_PacketIn(self, event):
-        log.info("Llego PacketIn en el switch %s", event.connection.dpid)
-
-        packet = event.parsed
         dpid = event.connection.dpid
-        in_port = event.port
-
-        src = packet.src
-        dst = packet.dst
-        self.mac_table[(dpid, src)] = in_port
+        if dpid != self.firewall_dpid:
+            return
+        packet = event.parsed
+        log.info("Llego PacketIn en el switch %s", event.connection.dpid)
 
         for rule in self.rules:
             if self.packet_matches_rule(rule, packet):
                 log.info("Bloqueado: regla=%s", rule)
+                event.halt = True
                 return
 
-        if (dpid, dst) in self.mac_table:
-            out_port = self.mac_table[(dpid, dst)]
-        else:
-            out_port = of.OFPP_FLOOD
-
-        msg = of.ofp_packet_out()
-        msg.data = event.data
-        msg.in_port = in_port
-        msg.actions.append(of.ofp_action_output(port=out_port))
-        event.connection.send(msg)
-
-def launch(rules="rules_file.json"):
-    core.registerNew(Firewall, rules)
+def launch(rules="rules_file.json", dpid=1):
+    core.registerNew(Firewall, rules, dpid)
