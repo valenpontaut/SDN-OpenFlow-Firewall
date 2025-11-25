@@ -57,14 +57,6 @@ class Firewall(EventMixin):
             if "dst_port" in rule:
                 msg.match.tp_dst = int(rule["dst_port"])
 
-            if rule.get("action", "DENY").upper() == "ALLOW":
-                msg.actions.append(of.ofp_action_output(port=of.OFPP_NORMAL))
-                msg.priority = 10
-                log.info("Regla ALLOW instalada: %s", rule)
-            else:
-                msg.priority = 20  # Más alta para DROP
-                log.info("Regla DROP instalada: %s", rule)
-
             event.connection.send(msg)
 
         log.info(">>> Todas las reglas fueron instaladas correctamente")
