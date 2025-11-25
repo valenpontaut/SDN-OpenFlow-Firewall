@@ -1,5 +1,6 @@
 [
   {
+    "protocol": "TCP",
     "dst_port": 80
   },
   {
@@ -8,7 +9,14 @@
     "protocol": "UDP"
   },
   {
-    "block_pair": ["10.0.0.2", "10.0.0.3"]
+    "src_ip": "10.0.0.2",
+    "dst_ip": "10.0.0.3",
+    "action": "drop"
+  },
+  {
+    "src_ip": "10.0.0.3",
+    "dst_ip": "10.0.0.2",
+    "action": "drop"
   }
 ]
 
